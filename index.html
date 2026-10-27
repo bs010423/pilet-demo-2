@@ -48,7 +48,7 @@
             padding: 10px;
             border-radius: 10px;
             display: inline-block;
-            color: #2ecc71; /* Doğrudan yeşil renk tanımlandı */
+            color: #2ecc71;
         }
         .time-display {
             font-size: 16px;
@@ -76,7 +76,6 @@
             text-transform: uppercase;
             letter-spacing: 1px;
         }
-        /* Reklamların birbirine yapışık alt alta durması için container */
         .ad-wrapper {
             width: 100%;
             border-radius: 12px;
@@ -123,8 +122,7 @@
         <div id="status-text" class="status-title">Park Yeriniz Kaydediliyor...</div>
         <div id="spot-display" class="parking-spot">P4 A-1</div>
         <div>
-            <!-- Buton kaldırıldı, yerine dinamik zaman alanı eklendi -->
-            <div id="time-text" class="time-display">Zaman bilgisi hesaplanıyor...</div>
+            <div id="time-text" class="time-display">Zaman bilgisi alınıyor...</div>
         </div>
     </div>
 
@@ -140,7 +138,7 @@
                     Bu ekranı kasada göstererek indirimden faydalanın.
                 </div>
             </div>
-            <!-- 2. Reklam Slotu (Yeni) -->
+            <!-- 2. Reklam Slotu -->
             <div class="ad-banner">
                 <img src="https://picsum.photos" alt="Reklam Görseli 2">
                 <div class="ad-text">
@@ -148,7 +146,7 @@
                     AVM içindeki yıkamada bugün geçerli %30 indirim.
                 </div>
             </div>
-            <!-- 3. Reklam Slotu (Yeni) -->
+            <!-- 3. Reklam Slotu -->
             <div class="ad-banner">
                 <img src="https://picsum.photos" alt="Reklam Görseli 3">
                 <div class="ad-text">
@@ -166,34 +164,19 @@
         return urlParams.get(param);
     }
 
-    // Geçen süreyi saat ve dakika olarak hesaplayan fonksiyon
-    function updateDurationCounter(savedTimeStr) {
+    // Sadece okutulma anındaki saati ekrana basan fonksiyon (Sayaç içermez)
+    function displaySavedTime(savedTimeStr) {
         const timeTextEl = document.getElementById('time-text');
         if (!savedTimeStr) {
-            timeTextEl.innerText = "--:-- | Süre ölçülemiyor";
+            timeTextEl.innerText = "Okutulma Saati: Bilinmiyor";
             return;
         }
 
         const savedTime = new Date(savedTimeStr);
+        const startHour = String(savedTime.getHours()).padStart(2, '0');
+        const startMinute = String(savedTime.getMinutes()).padStart(2, '0');
         
-        function calculate() {
-            const now = new Date();
-            const diffMs = now - savedTime;
-            
-            // Milisaniyeyi saat ve dakikaya çeviriyoruz
-            const diffMins = Math.floor(diffMs / 1000 / 60);
-            const hours = Math.floor(diffMins / 60);
-            const minutes = diffMins % 60;
-            
-            // Okutulma anındaki saat formatı (SS:DD)
-            const startHour = String(savedTime.getHours()).padStart(2, '0');
-            const startMinute = String(savedTime.getMinutes()).padStart(2, '0');
-            
-            timeTextEl.innerText = `${startHour}:${startMinute}  ${hours} saat ${minutes} dakika`;
-        }
-
-        calculate();
-        setInterval(calculate, 60000); // Her 60 saniyede bir sayacı güncelle
+        timeTextEl.innerText = `Okutulma Saati: ${startHour}:${startMinute}`;
     }
 
     window.onload = function() {
@@ -202,27 +185,29 @@
         const spotDisplay = document.getElementById('spot-display');
 
         if (currentSpot) {
-            // Yeni okutma yapıldıysa park yerini ve o anki zaman damgasını kaydet
+            // İlk kez okutulduğunda o anki saati kaydet ve ekranda göster
+            const nowIso = new Date().toISOString();
             localStorage.setItem('savedParkingSpot', currentSpot);
-            localStorage.setItem('parkingTimestamp', new Date().toISOString());
+            localStorage.setItem('parkingTimestamp', nowIso);
             
             statusText.innerText = "Park Yeriniz Başarıyla Kaydedildi! 🎉";
             spotDisplay.innerText = currentSpot;
             
-            updateDurationCounter(localStorage.getItem('parkingTimestamp'));
+            displaySavedTime(nowIso);
         } else {
             const savedSpot = localStorage.getItem('savedParkingSpot');
             const savedTimestamp = localStorage.getItem('parkingTimestamp');
             
             if (savedSpot) {
+                // Geri dönüldüğünde hafızadaki eski okutulma saatini getirir
                 statusText.innerText = "Hoş Geldiniz! Kayıtlı Yeriniz:";
                 spotDisplay.innerText = savedSpot;
-                updateDurationCounter(savedTimestamp);
+                displaySavedTime(savedTimestamp);
             } else {
-                // Eğer hafızada da kayıt yoksa varsayılan olarak yeşil P4 A-1 yazar
+                // Hafızada hiç kayıt yoksa varsayılan durum
                 statusText.innerText = "Kayıtlı park yeri bulunamadı.";
                 spotDisplay.innerText = "P4 A-1"; 
-                document.getElementById('time-text').innerText = "Henüz süre başlatılmadı.";
+                document.getElementById('time-text').innerText = "NFC Okutulmadı";
             }
         }
     };
