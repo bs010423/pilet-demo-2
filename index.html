@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -122,6 +123,7 @@
         <div id="status-text" class="status-title">Park Yeriniz Kaydediliyor...</div>
         <div id="spot-display" class="parking-spot">P4 A-1</div>
         <div>
+            <!-- Saat ve Tarih bilgisinin bir arada gösterileceği alan -->
             <div id="time-text" class="time-display">Zaman bilgisi alınıyor...</div>
         </div>
     </div>
@@ -164,19 +166,20 @@
         return urlParams.get(param);
     }
 
-    // Sadece okutulma anındaki saati ekrana basan fonksiyon (Sayaç içermez)
-    function displaySavedTime(savedTimeStr) {
-        const timeTextEl = document.getElementById('time-text');
-        if (!savedTimeStr) {
-            timeTextEl.innerText = "Okutulma Saati: Bilinmiyor";
-            return;
-        }
-
-        const savedTime = new Date(savedTimeStr);
-        const startHour = String(savedTime.getHours()).padStart(2, '0');
-        const startMinute = String(savedTime.getMinutes()).padStart(2, '0');
+    // Açılış anındaki saat ve tarih bilgisini formatlayan fonksiyon
+    function showCurrentDateTime() {
+        const now = new Date();
         
-        timeTextEl.innerText = `Okutulma Saati: ${startHour}:${startMinute}`;
+        // Saat ve Dakika ayarları
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        
+        // Gün, Ay ve Yıl ayarları
+        const day = String(now.getDate()).padStart(2, '0');
+        const month = String(now.getMonth() + 1).padStart(2, '0'); // Aylar 0'dan başladığı için +1 ekliyoruz
+        const year = now.getFullYear();
+        
+        document.getElementById('time-text').innerText = `Okutulma Zamanı: ${hours}:${minutes} - ${day}.${month}.${year}`;
     }
 
     window.onload = function() {
@@ -184,30 +187,21 @@
         const statusText = document.getElementById('status-text');
         const spotDisplay = document.getElementById('spot-display');
 
+        // Sayfa yüklendiği andaki zaman damgasını sabit olarak basar
+        showCurrentDateTime();
+
         if (currentSpot) {
-            // İlk kez okutulduğunda o anki saati kaydet ve ekranda göster
-            const nowIso = new Date().toISOString();
             localStorage.setItem('savedParkingSpot', currentSpot);
-            localStorage.setItem('parkingTimestamp', nowIso);
-            
             statusText.innerText = "Park Yeriniz Başarıyla Kaydedildi! 🎉";
             spotDisplay.innerText = currentSpot;
-            
-            displaySavedTime(nowIso);
         } else {
             const savedSpot = localStorage.getItem('savedParkingSpot');
-            const savedTimestamp = localStorage.getItem('parkingTimestamp');
-            
             if (savedSpot) {
-                // Geri dönüldüğünde hafızadaki eski okutulma saatini getirir
                 statusText.innerText = "Hoş Geldiniz! Kayıtlı Yeriniz:";
                 spotDisplay.innerText = savedSpot;
-                displaySavedTime(savedTimestamp);
             } else {
-                // Hafızada hiç kayıt yoksa varsayılan durum
                 statusText.innerText = "Kayıtlı park yeri bulunamadı.";
                 spotDisplay.innerText = "P4 A-1"; 
-                document.getElementById('time-text').innerText = "NFC Okutulmadı";
             }
         }
     };
