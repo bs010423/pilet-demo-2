@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Akıllı Otopark Yer Tutucu</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f6f9;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            width: 100%;
+            max-width: 450px;
+            background: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        /* Üst Bölüm: Fonksiyon Alanı (%40) */
+        .status-section {
+            padding: 30px 20px;
+            text-align: center;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 20px;
+        }
+        .status-title {
+            font-size: 16px;
+            opacity: 0.9;
+            margin-bottom: 10px;
+            min-height: 22px;
+        }
+        .parking-spot {
+            font-size: 36px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px;
+            border-radius: 10px;
+            display: inline-block;
+            color: #2ecc71; /* Doğrudan yeşil renk tanımlandı */
+        }
+        .time-display {
+            font-size: 16px;
+            font-weight: 500;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 8px 15px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+        /* Alt Bölüm: Reklam Alanı (%60) */
+        .ad-section {
+            flex-grow: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            background-color: #f8f9fa;
+        }
+        .ad-label {
+            font-size: 11px;
+            color: #aaa;
+            align-self: flex-start;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        /* Reklamların birbirine yapışık alt alta durması için container */
+        .ad-wrapper {
+            width: 100%;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        .ad-banner {
+            width: 100%;
+            height: 180px;
+            background-color: #ddd;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+            border-bottom: 1px solid rgba(255,255,255,0.3);
+        }
+        .ad-banner:last-child {
+            border-bottom: none;
+        }
+        .ad-banner img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .ad-text {
+            position: absolute;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- FONKSİYON ALANI -->
+    <div class="status-section">
+        <div id="status-text" class="status-title">Park Yeriniz Kaydediliyor...</div>
+        <div id="spot-display" class="parking-spot">P4 A-1</div>
+        <div>
+            <!-- Buton kaldırıldı, yerine dinamik zaman alanı eklendi -->
+            <div id="time-text" class="time-display">Zaman bilgisi hesaplanıyor...</div>
+        </div>
+    </div>
+
+    <!-- REKLAM ALANI -->
+    <div class="ad-section">
+        <div class="ad-label">Sponsorlu Reklamlar</div>
+        <div class="ad-wrapper">
+            <!-- 1. Reklam Slotu -->
+            <div class="ad-banner">
+                <img src="https://picsum.photos" alt="Reklam Görseli 1">
+                <div class="ad-text">
+                    <strong>Kahve Dünyası'nda %20 İndirim!</strong><br>
+                    Bu ekranı kasada göstererek indirimden faydalanın.
+                </div>
+            </div>
+            <!-- 2. Reklam Slotu (Yeni) -->
+            <div class="ad-banner">
+                <img src="https://picsum.photos" alt="Reklam Görseli 2">
+                <div class="ad-text">
+                    <strong>Oto Yıkamada Kaçırılmayacak Fırsat!</strong><br>
+                    AVM içindeki yıkamada bugün geçerli %30 indirim.
+                </div>
+            </div>
+            <!-- 3. Reklam Slotu (Yeni) -->
+            <div class="ad-banner">
+                <img src="https://picsum.photos" alt="Reklam Görseli 3">
+                <div class="ad-text">
+                    <strong>Teknosa Turuncu İndirim Günleri</strong><br>
+                    Aksesuarlarda sepette anında net %15 avantaj.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function getQueryParam(param) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(param);
+    }
+
+    // Geçen süreyi saat ve dakika olarak hesaplayan fonksiyon
+    function updateDurationCounter(savedTimeStr) {
+        const timeTextEl = document.getElementById('time-text');
+        if (!savedTimeStr) {
+            timeTextEl.innerText = "--:-- | Süre ölçülemiyor";
+            return;
+        }
+
+        const savedTime = new Date(savedTimeStr);
+        
+        function calculate() {
+            const now = new Date();
+            const diffMs = now - savedTime;
+            
+            // Milisaniyeyi saat ve dakikaya çeviriyoruz
+            const diffMins = Math.floor(diffMs / 1000 / 60);
+            const hours = Math.floor(diffMins / 60);
+            const minutes = diffMins % 60;
+            
+            // Okutulma anındaki saat formatı (SS:DD)
+            const startHour = String(savedTime.getHours()).padStart(2, '0');
+            const startMinute = String(savedTime.getMinutes()).padStart(2, '0');
+            
+            timeTextEl.innerText = `${startHour}:${startMinute}  ${hours} saat ${minutes} dakika`;
+        }
+
+        calculate();
+        setInterval(calculate, 60000); // Her 60 saniyede bir sayacı güncelle
+    }
+
+    window.onload = function() {
+        const currentSpot = getQueryParam('yer'); 
+        const statusText = document.getElementById('status-text');
+        const spotDisplay = document.getElementById('spot-display');
+
+        if (currentSpot) {
+            // Yeni okutma yapıldıysa park yerini ve o anki zaman damgasını kaydet
+            localStorage.setItem('savedParkingSpot', currentSpot);
+            localStorage.setItem('parkingTimestamp', new Date().toISOString());
+            
+            statusText.innerText = "Park Yeriniz Başarıyla Kaydedildi! 🎉";
+            spotDisplay.innerText = currentSpot;
+            
+            updateDurationCounter(localStorage.getItem('parkingTimestamp'));
+        } else {
+            const savedSpot = localStorage.getItem('savedParkingSpot');
+            const savedTimestamp = localStorage.getItem('parkingTimestamp');
+            
+            if (savedSpot) {
+                statusText.innerText = "Hoş Geldiniz! Kayıtlı Yeriniz:";
+                spotDisplay.innerText = savedSpot;
+                updateDurationCounter(savedTimestamp);
+            } else {
+                // Eğer hafızada da kayıt yoksa varsayılan olarak yeşil P4 A-1 yazar
+                statusText.innerText = "Kayıtlı park yeri bulunamadı.";
+                spotDisplay.innerText = "P4 A-1"; 
+                document.getElementById('time-text').innerText = "Henüz süre başlatılmadı.";
+            }
+        }
+    };
+</script>
+
+</body>
+</html>
