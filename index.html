@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -27,7 +26,7 @@
         }
         /* Üst Bölüm: Fonksiyon Alanı (%40) */
         .status-section {
-            padding: 30px 20px;
+            padding: 25px 20px; /* Üst boşluk daraltıldı */
             text-align: center;
             background: linear-gradient(135deg, #1e3c72, #2a5298);
             color: white;
@@ -38,13 +37,17 @@
             font-size: 16px;
             opacity: 0.9;
             margin-bottom: 10px;
-            min-height: 22px;
+            display: block; /* Dinamik yazı alanı korundu ancak boşken yer kaplamaz */
+        }
+        /* Durum yazısı tamamen boş olduğunda üst boşluğu optimize etmek için */
+        .status-title:empty {
+            display: none;
         }
         .parking-spot {
             font-size: 36px;
             font-weight: bold;
             letter-spacing: 1px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             background: rgba(255, 255, 255, 0.2);
             padding: 10px;
             border-radius: 10px;
@@ -62,7 +65,7 @@
         /* Alt Bölüm: Reklam Alanı (%60) */
         .ad-section {
             flex-grow: 1;
-            padding: 20px;
+            padding: 12px 20px 20px 20px; /* Mavi alana kadarki üst boşluk (12px) azaltıldı */
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -120,10 +123,10 @@
 <div class="container">
     <!-- FONKSİYON ALANI -->
     <div class="status-section">
-        <div id="status-text" class="status-title">Park Yeriniz Kaydediliyor...</div>
+        <!-- innerText boş bırakıldığında CSS ":empty" kuralı sayesinde tamamen gizlenir ve boşluk daralır -->
+        <div id="status-text" class="status-title"></div>
         <div id="spot-display" class="parking-spot">P4 A-1</div>
         <div>
-            <!-- Saat ve Tarih bilgisinin bir arada gösterileceği alan -->
             <div id="time-text" class="time-display">Zaman bilgisi alınıyor...</div>
         </div>
     </div>
@@ -156,6 +159,14 @@
                     Aksesuarlarda sepette anında net %15 avantaj.
                 </div>
             </div>
+            <!-- 4. Reklam Slotu (Yeni) -->
+            <div class="ad-banner">
+                <img src="https://picsum.photos" alt="Reklam Görseli 4">
+                <div class="ad-text">
+                    <strong>Boyner Yeni Sezon Alışverişi</strong><br>
+                    Seçili giyim ve ayakkabı ürünlerinde 2500 TL üzerine 500 TL hediye çeki!
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -166,17 +177,14 @@
         return urlParams.get(param);
     }
 
-    // Açılış anındaki saat ve tarih bilgisini formatlayan fonksiyon
     function showCurrentDateTime() {
         const now = new Date();
         
-        // Saat ve Dakika ayarları
         const hours = String(now.getHours()).padStart(2, '0');
         const minutes = String(now.getMinutes()).padStart(2, '0');
         
-        // Gün, Ay ve Yıl ayarları
         const day = String(now.getDate()).padStart(2, '0');
-        const month = String(now.getMonth() + 1).padStart(2, '0'); // Aylar 0'dan başladığı için +1 ekliyoruz
+        const month = String(now.getMonth() + 1).padStart(2, '0'); 
         const year = now.getFullYear();
         
         document.getElementById('time-text').innerText = `Okutulma Zamanı: ${hours}:${minutes} - ${day}.${month}.${year}`;
@@ -187,20 +195,22 @@
         const statusText = document.getElementById('status-text');
         const spotDisplay = document.getElementById('spot-display');
 
-        // Sayfa yüklendiği andaki zaman damgasını sabit olarak basar
         showCurrentDateTime();
 
         if (currentSpot) {
             localStorage.setItem('savedParkingSpot', currentSpot);
+            // Sadece NFC taraması yapıldığında kullanıcıyı bilgilendiren başlık görünür
             statusText.innerText = "Park Yeriniz Başarıyla Kaydedildi! 🎉";
             spotDisplay.innerText = currentSpot;
         } else {
             const savedSpot = localStorage.getItem('savedParkingSpot');
             if (savedSpot) {
+                // Kayıtlı yer hafızadan çağrıldığında da bilgi başlığı aktif olur
                 statusText.innerText = "Hoş Geldiniz! Kayıtlı Yeriniz:";
                 spotDisplay.innerText = savedSpot;
             } else {
-                statusText.innerText = "Kayıtlı park yeri bulunamadı.";
+                // Sistemde kayıt yoksa "Kayıtlı park yeri bulunamadı" yazısı yazmaz, element boş kalır ve CSS ile gizlenir
+                statusText.innerText = ""; 
                 spotDisplay.innerText = "P4 A-1"; 
             }
         }
